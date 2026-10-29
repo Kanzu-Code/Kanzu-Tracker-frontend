@@ -6,10 +6,9 @@ import ProgressDetail from './components/ProgressDetail'
 import SubmitModal from './components/SubmitModal'
 import ReviewModal from './components/ReviewModal'
 import {
-  fetchApprentices,
-  submitMilestone,
-  approveMilestone,
-  returnMilestone,
+  fetchApprenticeships,
+  createSubmission,
+  createReview,
 } from './services/api'
 
 export default function App() {
@@ -21,12 +20,15 @@ export default function App() {
   const [submitTarget, setSubmitTarget] = useState(null)
   const [reviewTarget, setReviewTarget] = useState(null)
 
+  // ── Data loading ────────────────────────────────────────────────────────────
+
   const loadApprentices = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchApprentices()
-      setApprentices(data)
+      const data = await fetchApprenticeships()
+      // API may return a paginated object { items: [...] } or a plain array.
+      setApprentices(Array.isArray(data) ? data : data.items ?? [])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -45,35 +47,60 @@ export default function App() {
     if (fresh) setSelectedApprentice(fresh)
   }, [apprentices]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Role toggle ─────────────────────────────────────────────────────────────
+
   const handleRoleToggle = () => {
     setCurrentRole((r) => (r === 'apprentice' ? 'mentor' : 'apprentice'))
     setSubmitTarget(null)
     setReviewTarget(null)
   }
 
+  // ── Navigation ──────────────────────────────────────────────────────────────
+
   const handleSelectApprentice = (apprentice) => setSelectedApprentice(apprentice)
   const handleBack = () => setSelectedApprentice(null)
 
+  // ── Apprentice: submit work ─────────────────────────────────────────────────
+  // POST /api/milestones/<id>/submissions
+
   const handleOpenSubmit = (milestone) => setSubmitTarget(milestone)
   const handleCloseSubmit = () => setSubmitTarget(null)
+
   const handleConfirmSubmit = async (notes) => {
-    await submitMilestone(submitTarget.id, { notes })
+    await createSubmission(submitTarget.id, { notes })
     handleCloseSubmit()
     await loadApprentices()
   }
 
+  // ── Mentor: review a submission ─────────────────────────────────────────────
+  // POST /api/submissions/<submission_id>/reviews
+  // The milestone carries its latest submission id as milestone.submission_id.
+
   const handleOpenReview = (milestone) => setReviewTarget(milestone)
   const handleCloseReview = () => setReviewTarget(null)
-  const handleApprove = async (payload) => {
-    await approveMilestone(reviewTarget.id, payload)
+
+  const handleApprove = async ({ rating, comment }) => {
+    // submission_id is the id of the latest submission on this milestone.
+    await createReview(reviewTarget.submission_id, {
+      rating,
+      comment,
+      action: 'approve',
+    })
     handleCloseReview()
     await loadApprentices()
   }
-  const handleReturn = async (payload) => {
-    await returnMilestone(reviewTarget.id, payload)
+
+  const handleReturn = async ({ rating, comment }) => {
+    await createReview(reviewTarget.submission_id, {
+      rating,
+      comment,
+      action: 'request_changes',
+    })
     handleCloseReview()
     await loadApprentices()
   }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-[#0B2239]">
