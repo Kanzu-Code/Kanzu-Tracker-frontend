@@ -38,6 +38,7 @@ export default function App() {
     loadApprentices()
   }, [loadApprentices])
 
+  // Re-sync the open detail view whenever the apprentices list refreshes.
   useEffect(() => {
     if (!selectedApprentice) return
     const fresh = apprentices.find((a) => a.id === selectedApprentice.id)
@@ -55,7 +56,6 @@ export default function App() {
 
   const handleOpenSubmit = (milestone) => setSubmitTarget(milestone)
   const handleCloseSubmit = () => setSubmitTarget(null)
-
   const handleConfirmSubmit = async (notes) => {
     await submitMilestone(submitTarget.id, { notes })
     handleCloseSubmit()
@@ -64,13 +64,11 @@ export default function App() {
 
   const handleOpenReview = (milestone) => setReviewTarget(milestone)
   const handleCloseReview = () => setReviewTarget(null)
-
   const handleApprove = async (payload) => {
     await approveMilestone(reviewTarget.id, payload)
     handleCloseReview()
     await loadApprentices()
   }
-
   const handleReturn = async (payload) => {
     await returnMilestone(reviewTarget.id, payload)
     handleCloseReview()
@@ -78,27 +76,28 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[#0B2239]">
       <Navbar currentRole={currentRole} onRoleToggle={handleRoleToggle} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
         {loading && (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
-            <svg className="animate-spin h-10 w-10 text-orange-400" fill="none" viewBox="0 0 24 24">
+          <div className="flex flex-col items-center justify-center py-28 gap-4 text-[#94A3B8]">
+            <svg className="animate-spin h-10 w-10 text-[#85C441]" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
-            <p className="text-sm">Loading apprentices...</p>
+            <p className="text-sm">Loading data...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-6 text-center space-y-3">
-            <p className="font-semibold">Failed to load data</p>
-            <p className="text-sm text-red-500">{error}</p>
+          <div className="bg-[#061424] border border-red-500/30 rounded-2xl p-8 text-center space-y-3">
+            <p className="font-semibold text-white">Could not connect to the server</p>
+            <p className="text-sm text-red-400">{error}</p>
             <button
               onClick={loadApprentices}
-              className="mt-2 bg-red-600 hover:bg-red-500 text-white text-sm font-medium px-5 py-2 rounded-xl transition-colors"
+              className="mt-2 bg-[#85C441] hover:bg-[#72AB35] text-[#0B2239] text-sm font-bold px-6 py-2 rounded-full transition-colors"
             >
               Retry
             </button>

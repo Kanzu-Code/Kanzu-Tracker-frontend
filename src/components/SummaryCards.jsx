@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { isOverdue } from '../utils/helpers'
 
 export default function SummaryCards({ apprentices }) {
   const stats = useMemo(() => {
@@ -6,7 +7,6 @@ export default function SummaryCards({ apprentices }) {
     let remaining = 0
     let overdue = 0
     let paymentsDue = 0
-
     const now = new Date()
 
     apprentices.forEach((a) => {
@@ -15,10 +15,7 @@ export default function SummaryCards({ apprentices }) {
           completed++
         } else {
           remaining++
-          if (m.due_date) {
-            const diffDays = (now - new Date(m.due_date)) / (1000 * 60 * 60 * 24)
-            if (diffDays > 14) overdue++
-          }
+          if (m.due_date && isOverdue(m.due_date, m.status)) overdue++
         }
         if (m.payment_status === 'Due') paymentsDue++
       })
@@ -31,42 +28,63 @@ export default function SummaryCards({ apprentices }) {
     {
       label: 'Milestones Completed',
       value: stats.completed,
-      color: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-      valueColor: 'text-emerald-600',
+      sub: `across ${apprentices.length} apprentice${apprentices.length !== 1 ? 's' : ''}`,
+      valueColor: 'text-[#85C441]',
+      border: 'border-[#85C441]/25',
+      dot: 'bg-[#85C441]',
     },
     {
       label: 'Milestones Remaining',
       value: stats.remaining,
-      color: 'bg-blue-50 border-blue-200 text-blue-700',
-      valueColor: 'text-blue-600',
+      sub: 'still in progress',
+      valueColor: 'text-blue-400',
+      border: 'border-blue-400/25',
+      dot: 'bg-blue-400',
     },
     {
       label: 'Overdue Milestones',
       value: stats.overdue,
-      color: 'bg-red-50 border-red-200 text-red-700',
-      valueColor: 'text-red-600',
+      sub: 'more than 2 weeks late',
+      valueColor: 'text-red-400',
+      border: 'border-red-400/25',
+      dot: 'bg-red-400',
     },
     {
       label: 'Payments Due',
       value: stats.paymentsDue,
-      color: 'bg-amber-50 border-amber-200 text-amber-700',
-      valueColor: 'text-amber-600',
+      sub: 'awaiting disbursement',
+      valueColor: 'text-amber-400',
+      border: 'border-amber-400/25',
+      dot: 'bg-amber-400',
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card) => (
-        <div
-          key={card.label}
-          className={`rounded-xl border p-4 flex flex-col gap-2 shadow-sm ${card.color}`}
-        >
-          <span className="text-sm font-medium opacity-80">{card.label}</span>
-          <span className={`text-3xl font-bold ${card.valueColor}`}>
-            {card.value}
-          </span>
-        </div>
-      ))}
+    <div>
+      <h1 className="text-3xl font-extrabold text-white tracking-tight mb-1">
+        Apprentice <span className="text-[#85C441]">Dashboard</span>
+      </h1>
+      <p className="text-sm text-[#94A3B8] mb-6">
+        Live programme overview
+      </p>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className={`bg-[#061424] rounded-2xl border ${card.border} p-5 flex flex-col gap-3`}
+          >
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${card.dot}`} />
+              <span className="text-xs font-medium text-[#94A3B8]">{card.label}</span>
+            </div>
+            <span className={`text-4xl font-extrabold ${card.valueColor}`}>
+              {card.value}
+            </span>
+            <span className="text-xs text-[#94A3B8]/70">{card.sub}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

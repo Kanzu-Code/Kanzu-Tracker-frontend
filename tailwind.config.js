@@ -8,9 +8,15 @@ export default {
     extend: {
       colors: {
         kanzu: {
-          orange: '#F97316',
-          dark: '#1E293B',
+          navy:       '#0B2239',
+          'navy-deep': '#061424',
+          green:      '#85C441',
+          'green-hover': '#72AB35',
+          muted:      '#94A3B8',
         },
+      },
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },
